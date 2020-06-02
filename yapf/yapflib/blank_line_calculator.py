@@ -36,7 +36,7 @@ _PYTHON_STATEMENTS = frozenset({
     'break_stmt', 'continue_stmt', 'return_stmt', 'raise_stmt', 'yield_stmt',
     'import_stmt', 'global_stmt', 'exec_stmt', 'assert_stmt', 'if_stmt',
     'while_stmt', 'for_stmt', 'try_stmt', 'with_stmt', 'nonlocal_stmt',
-    'async_stmt', 'simple_stmt'
+    'async_stmt', 'simple_stmt',
 })
 
 
@@ -48,8 +48,22 @@ def CalculateBlankLines(tree):
   Arguments:
     tree: the top-level pytree node to annotate with subtypes.
   """
+  def find_top_level_import_end(tree):
+    return next(
+      reversed([
+        top_level_node
+        for top_level_node in tree.children
+        if pytree_utils.IsImportStatement(top_level_node)
+      ]),
+    None)
+
   blank_line_calculator = _BlankLineCalculator()
   blank_line_calculator.Visit(tree)
+
+  last_import_node = find_top_level_import_end(tree)
+  if last_import_node is not None:
+    first_not_import = pytree_utils.FirstLeafNode(last_import_node.next_sibling)
+    _SetNumNewlines(first_not_import, _TWO_BLANK_LINES)
 
 
 class _BlankLineCalculator(pytree_visitor.PyTreeVisitor):
@@ -62,10 +76,13 @@ class _BlankLineCalculator(pytree_visitor.PyTreeVisitor):
     self.last_was_decorator = False
     self.last_was_class_or_function = False
 
+
   def Visit_simple_stmt(self, node):  # pylint: disable=invalid-name
+
     self.DefaultNodeVisit(node)
     if pytree_utils.NodeName(node.children[0]) == 'COMMENT':
       self.last_comment_lineno = node.children[0].lineno
+
 
   def Visit_decorator(self, node):  # pylint: disable=invalid-name
     if (self.last_comment_lineno and

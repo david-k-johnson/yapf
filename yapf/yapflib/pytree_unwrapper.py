@@ -266,8 +266,8 @@ class PyTreeUnwrapper(pytree_visitor.PyTreeVisitor):
     self.DefaultNodeVisit(node)
 
   def Visit_import_as_names(self, node):  # pylint: disable=invalid-name
-    if node.prev_sibling.value == '(':
-      _DetermineMustSplitAnnotation(node)
+    # if node.prev_sibling.value == '(':
+    _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
   def Visit_testlist_gexp(self, node):  # pylint: disable=invalid-name

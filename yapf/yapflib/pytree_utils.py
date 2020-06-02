@@ -41,6 +41,12 @@ NONSEMANTIC_TOKENS = frozenset(['DEDENT', 'INDENT', 'NEWLINE', 'ENDMARKER'])
 OPENING_BRACKETS = frozenset({'(', '[', '{'})
 CLOSING_BRACKETS = frozenset({')', ']', '}'})
 
+IMPORT_SYMBOLS = frozenset({'import_stmt',
+                            'import_name',
+                            'import_from',
+                            'import_as_name',
+                            'dotted_as_name',
+                            'import_as_names',})
 
 class Annotation(object):
   """Annotation names associated with pytrees."""
@@ -344,3 +350,7 @@ def _PytreeNodeRepr(node):
 def IsCommentStatement(node):
   return (NodeName(node) == 'simple_stmt' and
           node.children[0].type == token.COMMENT)
+
+def IsImportStatement(node):
+   return (NodeName(node) == 'simple_stmt' and
+           NodeName(node.children[0]) in IMPORT_SYMBOLS)

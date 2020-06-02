@@ -51,7 +51,6 @@ from yapf.yapflib import split_penalty
 from yapf.yapflib import style
 from yapf.yapflib import subtype_assigner
 
-
 def FormatFile(filename,
                style_config=None,
                lines=None,
