@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc. All Rights Reserved.
+  # Copyright 2015 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -169,10 +169,10 @@ def FormatCode(unformatted_source,
     return '' if print_diff else reformatted_source, False
 
   code_diff = _GetUnifiedDiff(
-      unformatted_source, reformatted_source, filename=filename)
-
+        unformatted_source, reformatted_source, filename=filename)
+  
   if print_diff:
-    return code_diff, code_diff.strip() != ''  # pylint: disable=g-explicit-bool-comparison
+        return code_diff, code_diff.strip() != ''  # pylint: disable=g-explicit-bool-comparison
 
   return reformatted_source, True
 

@@ -11,7 +11,7 @@
   even when shorter than the max line length.
 - New knob `SPACE_INSIDE_BRACKETS` to add spaces inside brackets, braces, and
   parentheses.
-- New knob `SPACES_AROUND_SUBSCRIPT_COLON` to add spaces around the subscript /
+- New knob `SPACES_AROUND_SUBSCRIPT_  ` to add spaces around the subscript /
   slice operator.
 ### Changed
 - Renamed "chromium" style to "yapf". Chromium will now use PEP-8 directly.

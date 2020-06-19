@@ -389,7 +389,7 @@ class FormatFileTest(unittest.TestCase):
       self.assertCodeEqual(code, formatted_code)
 
 
-class CommandLineTest(unittest.TestCase):
+class CommandLineTest(yapf_test_helper.YAPFTest):
   """Test how calling yapf from the command line acts."""
 
   @classmethod
@@ -426,7 +426,7 @@ class CommandLineTest(unittest.TestCase):
     reformatted_code, stderrdata = p.communicate(
         unformatted.encode('utf-8-sig'))
     self.assertEqual(stderrdata, b'')
-    self.assertMultiLineEqual(reformatted_code.decode('utf-8'), expected)
+    self.assertCodeEqual(expected, reformatted_code.decode('utf-8'))
 
   def testUnicodeEncodingPipedToFile(self):
     unformatted_code = textwrap.dedent(u"""\

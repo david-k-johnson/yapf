@@ -36,7 +36,7 @@ _PYTHON_STATEMENTS = frozenset({
     'break_stmt', 'continue_stmt', 'return_stmt', 'raise_stmt', 'yield_stmt',
     'import_stmt', 'global_stmt', 'exec_stmt', 'assert_stmt', 'if_stmt',
     'while_stmt', 'for_stmt', 'try_stmt', 'with_stmt', 'nonlocal_stmt',
-    'async_stmt', 'simple_stmt',
+    'async_stmt', 'simple_stmt'
 })
 
 
@@ -60,10 +60,11 @@ def CalculateBlankLines(tree):
   blank_line_calculator = _BlankLineCalculator()
   blank_line_calculator.Visit(tree)
 
-  last_import_node = find_top_level_import_end(tree)
-  if last_import_node is not None:
-    first_not_import = pytree_utils.FirstLeafNode(last_import_node.next_sibling)
-    _SetNumNewlines(first_not_import, _TWO_BLANK_LINES)
+  if style.Get('PURE_TWO_BLANK_LINES_AFTER_IMPORT'):
+    last_import_node = find_top_level_import_end(tree)
+    if last_import_node is not None:
+      first_not_import = pytree_utils.FirstLeafNode(last_import_node.next_sibling)
+      _SetNumNewlines(first_not_import, _TWO_BLANK_LINES)
 
 
 class _BlankLineCalculator(pytree_visitor.PyTreeVisitor):

@@ -79,7 +79,8 @@ def Reformat(uwlines, verify=False, lines=None):
       _EmitLineUnformatted(state)
 
     elif (_LineContainsPylintDisableLineTooLong(uwline) or
-          _LineContainsI18n(uwline)):
+          _LineContainsI18n(uwline) or
+          _LineContainsFlake8(uwline)):
       # Don't modify vertical spacing, but fix any horizontal spacing issues.
       _RetainRequiredVerticalSpacing(uwline, prev_uwline, lines)
       _EmitLineUnformatted(state)
@@ -242,6 +243,9 @@ def _LineContainsPylintDisableLineTooLong(uwline):
   """Return true if there is a "pylint: disable=line-too-long" comment."""
   return re.search(r'\bpylint:\s+disable=line-too-long\b', uwline.last.value)
 
+def _LineContainsFlake8(uwline):
+  """Return true if there is a "noqa:" comment."""
+  return re.search(r'\bnoqa:\s*', uwline.last.value)
 
 def _LineHasContinuationMarkers(uwline):
   """Return true if the line has continuation markers in it."""
@@ -263,7 +267,7 @@ def _CanPlaceOnSingleLine(uwline):
   indent_amt = style.Get('INDENT_WIDTH') * uwline.depth
   last = uwline.last
   last_index = -1
-  if last.is_pylint_comment or last.is_pytype_comment:
+  if last.is_pylint_comment or last.is_pytype_comment or last.is_flake8_comment:
     last = last.previous_token
     last_index = -2
   if last is None:

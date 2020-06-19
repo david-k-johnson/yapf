@@ -322,14 +322,15 @@ def DumpNodeToString(node):
   """
   if isinstance(node, pytree.Leaf):
     fmt = ('{name}({value}) [lineno={lineno}, column={column}, '
-           'prefix={prefix}, penalty={penalty}]')
+           'prefix={prefix}, penalty={penalty}, must_split={must_split}]')
     return fmt.format(
         name=NodeName(node),
         value=_PytreeNodeRepr(node),
         lineno=node.lineno,
         column=node.column,
         prefix=repr(node.prefix),
-        penalty=GetNodeAnnotation(node, Annotation.SPLIT_PENALTY, None))
+        penalty=GetNodeAnnotation(node, Annotation.SPLIT_PENALTY, None),
+        must_split=GetNodeAnnotation(node, Annotation.MUST_SPLIT, None))
   else:
     fmt = '{node} [{len} children] [child_indent="{indent}"]'
     return fmt.format(

@@ -402,6 +402,16 @@ _STYLE_HELP = dict(
       operators."""),
     USE_TABS=textwrap.dedent("""\
       Use the Tab character for indentation."""),
+    PURE_SPLIT_IMPORTS=textwrap.dedent("""\
+      Split on commas in imports."""),
+    PURE_LAMBDA_ON_ONE_LINE=textwrap.dedent("""\
+      Lambdas always on one line."""),
+    PURE_TWO_BLANK_LINES_AFTER_IMPORT=textwrap.dedent("""\
+      Two blank lines after last import."""),
+    PURE_SPLIT_ON_MOST_TOKENS=textwrap.dedent("""\
+      Split based on Leo's desires."""),
+    PURE_NEVER_SPLIT_SPECIAL_COMMENTS=textwrap.dedent("""\
+      Never split special comments that apply to entire line."""),
     # BASED_ON_STYLE='Which predefined style this style is based on',
 )
 
@@ -468,6 +478,11 @@ def CreatePEP8Style():
       SPLIT_PENALTY_IMPORT_NAMES=0,
       SPLIT_PENALTY_LOGICAL_OPERATOR=300,
       USE_TABS=False,
+      PURE_SPLIT_IMPORTS=False,
+      PURE_LAMBDA_ON_ONE_LINE=False,
+      PURE_TWO_BLANK_LINES_AFTER_IMPORT=False,
+      PURE_SPLIT_ON_MOST_TOKENS=False,
+      PURE_NEVER_SPLIT_SPECIAL_COMMENTS=False,
   )
 
 
@@ -655,6 +670,11 @@ _STYLE_OPTION_VALUE_CONVERTER = dict(
     SPLIT_PENALTY_IMPORT_NAMES=int,
     SPLIT_PENALTY_LOGICAL_OPERATOR=int,
     USE_TABS=_BoolConverter,
+    PURE_SPLIT_IMPORTS=_BoolConverter,
+    PURE_LAMBDA_ON_ONE_LINE=_BoolConverter,
+    PURE_TWO_BLANK_LINES_AFTER_IMPORT=_BoolConverter,
+    PURE_SPLIT_ON_MOST_TOKENS=_BoolConverter,
+    PURE_NEVER_SPLIT_SPECIAL_COMMENTS=_BoolConverter,
 )
 
 

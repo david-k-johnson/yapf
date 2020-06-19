@@ -28,6 +28,7 @@ through the code to commit the whitespace formatting.
 
 from yapf.yapflib import format_token
 from yapf.yapflib import object_state
+from yapf.yapflib import pytree_utils
 from yapf.yapflib import split_penalty
 from yapf.yapflib import style
 from yapf.yapflib import unwrapped_line
@@ -148,6 +149,9 @@ class FormatDecisionState(object):
         not style.Get('ALLOW_SPLIT_BEFORE_DICT_VALUE')):
       return False
 
+    if _IsLambda(current) and style.Get('PURE_LAMBDA_ON_ONE_LINE'):
+      return False
+
     if previous and previous.value == '(' and current.value == ')':
       # Don't split an empty function call list if we aren't splitting before
       # dict values.
@@ -179,6 +183,9 @@ class FormatDecisionState(object):
 
     if not previous:
       return False
+
+    if current.is_flake8_comment and style.Get('PURE_NEVER_SPLIT_SPECIAL_COMMENTS'):
+        return False
 
     if style.Get('SPLIT_ALL_COMMA_SEPARATED_VALUES') and previous.value == ',':
       return True
@@ -406,7 +413,9 @@ class FormatDecisionState(object):
         self._ArgumentListHasDictionaryEntry(current)):
       return True
 
-    if style.Get('SPLIT_ARGUMENTS_WHEN_COMMA_TERMINATED'):
+    if (style.Get('SPLIT_ARGUMENTS_WHEN_COMMA_TERMINATED')
+      and not (_IsLambda(current) and style.Get('PURE_LAMBDA_ON_ONE_LINE'))
+    ):
       # Split before arguments in a function call or definition if the
       # arguments are terminated by a comma.
       opening = _GetOpeningBracket(current)
@@ -741,8 +750,10 @@ class FormatDecisionState(object):
 
     # Calculate the penalty for overflowing the column limit.
     penalty = 0
-    if (not current.is_pylint_comment and not current.is_pytype_comment and
-        self.column > self.column_limit):
+    if (not current.is_pylint_comment
+        and not current.is_pytype_comment
+        and not current.is_flake8_comment 
+        and self.column > self.column_limit):
       excess_characters = self.column - self.column_limit
       penalty += style.Get('SPLIT_PENALTY_EXCESS_CHARACTER') * excess_characters
 
@@ -1130,6 +1141,13 @@ def _IsFunctionCallWithArguments(token):
     token = token.next_token
   return False
 
+def _IsLambda(token):
+  if (token.node
+    and token.node.parent
+    and token.node.parent.parent
+    and pytree_utils.NodeName(token.node.parent.parent) == 'lambdef'):
+    return True
+  return False
 
 def _IsArgumentToFunction(token):
   bracket = unwrapped_line.IsSurroundedByBrackets(token)
