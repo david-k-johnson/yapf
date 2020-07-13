@@ -26,6 +26,7 @@ from yapf.yapflib import pytree_utils
 from yapf.yapflib import pytree_visitor
 from yapf.yapflib import split_penalty
 from yapf.yapflib import style
+from yapf.yapflib import transformer
 from yapf.yapflib import subtype_assigner
 
 
@@ -35,17 +36,17 @@ class YAPFTest(unittest.TestCase):
     if code != expected_code:
       msg = ['Code format mismatch:', 'Expected:']
       linelen = style.Get('COLUMN_LIMIT')
-      for l in expected_code.splitlines():
-        if len(l) > linelen:
-          msg.append('!> %s' % l)
+      for line in expected_code.splitlines():
+        if len(line) > linelen:
+          msg.append('!> %s' % line)
         else:
-          msg.append(' > %s' % l)
+          msg.append(' > %s' % line)
       msg.append('Actual:')
-      for l in code.splitlines():
-        if len(l) > linelen:
-          msg.append('!> %s' % l)
+      for line in code.splitlines():
+        if len(line) > linelen:
+          msg.append('!> %s' % line)
         else:
-          msg.append(' > %s' % l)
+          msg.append(' > %s' % line)
       msg.append('Diff:')
       msg.extend(
           difflib.unified_diff(
@@ -78,6 +79,7 @@ def ParseAndUnwrap(code, dumptree=False):
   identify_container.IdentifyContainers(tree)
   split_penalty.ComputeSplitPenalties(tree)
   blank_line_calculator.CalculateBlankLines(tree)
+  transformer.Transformer(tree)
 
   if dumptree:
     pytree_visitor.DumpPyTree(tree, target_stream=sys.stderr)

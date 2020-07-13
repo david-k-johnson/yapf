@@ -19,13 +19,13 @@ single line if there were no line length restrictions. It's then used by the
 parser to perform the wrapping required to comply with the style guide.
 """
 
+from lib2to3.fixer_util import syms as python_symbols
+
 from yapf.yapflib import format_token
 from yapf.yapflib import py3compat
 from yapf.yapflib import pytree_utils
 from yapf.yapflib import split_penalty
 from yapf.yapflib import style
-
-from lib2to3.fixer_util import syms as python_symbols
 
 
 class UnwrappedLine(object):
@@ -588,9 +588,9 @@ def _IsDictListTupleDelimiterTok(tok, is_opening):
   assert open_tok.next_token.node.parent
 
   return open_tok.next_token.node.parent.type in [
-      python_symbols.dictsetmaker,
-      python_symbols.listmaker,
-      python_symbols.testlist_gexp,
+      python_symbols.dictsetmaker,  # pylint: disable=no-member
+      python_symbols.listmaker,  # pylint: disable=no-member
+      python_symbols.testlist_gexp,  # pylint: disable=no-member
   ]
 
 

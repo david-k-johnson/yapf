@@ -51,11 +51,13 @@ def UnwrapPyTree(tree):
   """
   unwrapper = PyTreeUnwrapper()
 
-  # import sys
+  import sys  # pylint: disable=import-outside-toplevel
   unwrapper.Visit(tree)
   uwlines = unwrapper.GetUnwrappedLines()
   uwlines.sort(key=lambda x: x.lineno)
-  # pytree_visitor.DumpPyTree(tree, target_stream=sys.stderr)
+  pytree_visitor.DumpPyTree(tree, target_stream=sys.stderr)
+  import tinker  # pylint: disable=import-outside-toplevel
+  tinker.dump(uwlines)
   return uwlines
 
 
@@ -94,6 +96,10 @@ class PyTreeUnwrapper(pytree_visitor.PyTreeVisitor):
     self._tname = 0
     self._power = 0
     self._lambdef = 0
+
+    self._FUNC_DEF_ELEMS = frozenset(  # pylint: disable=invalid-name
+        {'def', 'lambda'}
+        if style.Get('PURE_SPLIT_ON_MOST_TOKENS') else {'def'})
 
   def GetUnwrappedLines(self):
     """Fetch the result of the tree walk.
@@ -200,8 +206,6 @@ class PyTreeUnwrapper(pytree_visitor.PyTreeVisitor):
   def Visit_except_clause(self, node):  # pylint: disable=invalid-name
     self._VisitCompoundStatement(node, self._EXCEPT_STMT_ELEMS)
 
-  _FUNC_DEF_ELEMS = frozenset({'def', 'lambda'} if style.Get('PURE_LAMBDA_ON_ONE_LINE') else {'def'})
-
   def Visit_funcdef(self, node):  # pylint: disable=invalid-name
     self._VisitCompoundStatement(node, self._FUNC_DEF_ELEMS)
 
@@ -264,12 +268,14 @@ class PyTreeUnwrapper(pytree_visitor.PyTreeVisitor):
     self._cur_depth -= 1
 
   def Visit_listmaker(self, node):  # pylint: disable=invalid-name
-    if not (self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    if ((not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')) or
+        not style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
   def Visit_dictsetmaker(self, node):  # pylint: disable=invalid-name
-    if not (self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    if ((not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')) or
+        not style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
@@ -279,75 +285,70 @@ class PyTreeUnwrapper(pytree_visitor.PyTreeVisitor):
     self.DefaultNodeVisit(node)
 
   def Visit_testlist_gexp(self, node):  # pylint: disable=invalid-name
-    if not (self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    if ((not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')) or
+        not style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
   def Visit_arglist(self, node):  # pylint: disable=invalid-name
-    if not (self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    if ((not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')) or
+        not style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
   def Visit_typedargslist(self, node):  # pylint: disable=invalid-name
-    if not (self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    if ((not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')) or
+        not style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
   def Visit_subscriptlist(self, node):  # pylint: disable=invalid-name
-    if (self._power
-        and not self._lambdef
-        and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    if (self._power and not self._lambdef and
+        style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
 
   def Visit_atom(self, node):  # pylint: disable=invalid-name
-    if (self._power
-         and not self._lambdef
-         and  style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
-      _DetermineMustSplitAnnotation(node, )
+    if (self._power and not self._lambdef and
+        style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+      _DetermineMustSplitAnnotation(node,)
     self.DefaultNodeVisit(node)
 
   def Visit_tname(self, node):  # pylint: disable=invalid-name
-    self._tname+=1
-    if (not self._lambdef 
-      and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+    self._tname += 1
+    if (not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node)
     self.DefaultNodeVisit(node)
-    self._tname-=1
+    self._tname -= 1
 
   def Visit_power(self, node):  # pylint: disable=invalid-name
-    self._power+=1
-    if (not self._tname
-        and not (node.prev_sibling
-                 and hasattr(node.prev_sibling, 'value')
-                 and node.prev_sibling.value in ["->","=", ':']
-                ) 
-        and not self._lambdef
-        and style.Get('PURE_SPLIT_ON_MOST_TOKENS')
-      ):
-        _DetermineMustSplitAnnotation(node, always_split_first=(node.prev_sibling and node.prev_sibling.value in "[({"))
+    self._power += 1
+    if (not self._tname and
+        not (node.prev_sibling and hasattr(node.prev_sibling, 'value') and
+             node.prev_sibling.value in ["->", "=", ':']) and
+        not self._lambdef and style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
+      _DetermineMustSplitAnnotation(
+          node,
+          always_split_first=(node.prev_sibling and
+                              node.prev_sibling.value in "[({"))
     self.DefaultNodeVisit(node)
-    self._power-=1
+    self._power -= 1
 
   def Visit_trailer(self, node):  # pylint: disable=invalid-name
-    if (self._power 
-        and not self._lambdef
-        and style.Get('PURE_SPLIT_ON_MOST_TOKENS')
-      ): #and list(node.parent.leaves())[-1].value in ",]})"
+    if (self._power and not self._lambdef and
+        style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _DetermineMustSplitAnnotation(node, skip_split_first=True)
-    if (self._power 
-        and not self._lambdef
-        and pytree_utils.LastLeafNode(node).value in "]}"
-        and not all([isinstance(x,  pytree.Leaf) for x in node.children])
-        and style.Get('PURE_SPLIT_ON_MOST_TOKENS')
-      ):
+    if (self._power and not self._lambdef and
+        pytree_utils.LastLeafNode(node).value in "]}" and
+        not all([isinstance(x, pytree.Leaf) for x in node.children]) and
+        style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       _SetMustSplitOnFirstLeaf(list(node.parent.leaves())[-1])
     self.DefaultNodeVisit(node)
 
   def Visit_lambdef(self, node):
-    self._lambdef+=1
+    self._lambdef += 1
     self.DefaultNodeVisit(node)
-    self._lambdef-=1
+    self._lambdef -= 1
 
   def Visit_comp_for(self, node):
     if style.Get('PURE_SPLIT_ON_MOST_TOKENS'):
@@ -367,26 +368,26 @@ class PyTreeUnwrapper(pytree_visitor.PyTreeVisitor):
     Arguments:
       leaf: the leaf to visit.
     """
-    if (leaf.type == grammar_token.COMMENT
-        and style.Get('PURE_NEVER_SPLIT_SPECIAL_COMMENTS')
-    ):
+    if (leaf.type == grammar_token.COMMENT and
+        style.Get('PURE_NEVER_SPLIT_SPECIAL_COMMENTS')):
       if format_token.FormatToken(leaf).is_flake8_comment:
         same_line_nodes = [
-          i.node
-          for i in self._cur_unwrapped_line.tokens
-          if i.lineno == leaf.lineno
+            i.node
+            for i in self._cur_unwrapped_line.tokens
+            if i.lineno == leaf.lineno
         ]
 
-        [
-          pytree_utils.SetNodeAnnotation(i, pytree_utils.Annotation.MUST_SPLIT,False)
-          for i in same_line_nodes[1:]
-        ]
+      _ = [
+          pytree_utils.SetNodeAnnotation(i, pytree_utils.Annotation.MUST_SPLIT,
+                                         False) for i in same_line_nodes[1:]
+      ]
 
-        [
-          pytree_utils.SetNodeAnnotation(i, pytree_utils.Annotation.SPLIT_PENALTY, split_penalty.UNBREAKABLE)
+      _ = [
+          pytree_utils.SetNodeAnnotation(i,
+                                         pytree_utils.Annotation.SPLIT_PENALTY,
+                                         split_penalty.UNBREAKABLE)
           for i in same_line_nodes[1:]
-        ]
-        
+      ]
 
     if leaf.type in _WHITESPACE_TOKENS:
       self._StartNewLine()
@@ -477,35 +478,36 @@ def _AdjustSplitPenalty(uwline):
       bracket_level -= 1
 
 
-def _DetermineMustSplitAnnotation(node, always_split_first=False, skip_split_first=False):
+def _DetermineMustSplitAnnotation(node,
+                                  always_split_first=False,
+                                  skip_split_first=False):
   """Enforce a split in the list if the list ends with a comma."""
   if style.Get('DISABLE_ENDING_COMMA_HEURISTIC'):
     return
-  if (not _ContainsComments(node)
-      # and not always_split_first
-      # and not skip_split_first
-  ):
+  if (not _ContainsComments(node) and not always_split_first and
+      not skip_split_first):
     token = next(node.parent.leaves())
     if token.value in "([" and style.Get('PURE_SPLIT_ON_MOST_TOKENS'):
       if len(node.children) < 3:
         return
     elif token.value == '(' and not style.Get('PURE_SPLIT_ON_MOST_TOKENS'):
       if sum(1 for ch in node.children
-              if pytree_utils.NodeName(ch) == 'COMMA') < 2:
-         return
-    if (not isinstance(node.children[-1], pytree.Leaf) or
-        node.children[-1].value != ','):
+             if pytree_utils.NodeName(ch) == 'COMMA') < 2:
+        return
+    if ((not isinstance(node.children[-1], pytree.Leaf) or
+         node.children[-1].value != ',') and
+        not style.Get('PURE_SPLIT_ON_MOST_TOKENS')):
       return
   num_children = len(node.children)
   index = 0
   if not skip_split_first:
-   _SetMustSplitOnFirstLeaf(node.children[0])
+    _SetMustSplitOnFirstLeaf(node.children[0])
   while index < num_children - 1:
     child = node.children[index]
-    if (isinstance(child, pytree.Leaf) 
-        and (child.value in (',)]}' if style.Get('PURE_SPLIT_ON_MOST_TOKENS') else ','))
-             or (child.type in (['NAME'] if style.Get('PURE_SPLIT_ON_MOST_TOKENS') else []))
-    ):
+    if (isinstance(child, pytree.Leaf) and
+        (child.value in ',)]}' if style.Get('PURE_SPLIT_ON_MOST_TOKENS') else
+         ',') or (child.type in ['NAME']
+                  if style.Get('PURE_SPLIT_ON_MOST_TOKENS') else [])):
       next_child = node.children[index + 1]
       if next_child.type == grammar_token.COMMENT:
         index += 1

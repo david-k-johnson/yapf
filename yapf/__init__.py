@@ -57,7 +57,7 @@ def main(argv):
   Raises:
     YapfError: if none of the supplied files were Python files.
   """
-  args = _ParseArguments(argv)
+  (parser, args) = _ParseArguments(argv)
   if args.version:
     print('yapf {}'.format(__version__))
     return 0
@@ -80,8 +80,6 @@ def main(argv):
 
     original_source = []
     while True:
-      if sys.stdin.closed:
-        break
       try:
         # Use 'raw_input' instead of 'sys.stdin.read', because otherwise the
         # user will need to hit 'Ctrl-D' more than once if they're inputting
@@ -113,12 +111,14 @@ def main(argv):
     return 0
 
   # Get additional exclude patterns from ignorefile
-  exclude_patterns_from_ignore_file = file_resources.GetExcludePatternsForDir(
+  exclude_patterns_from_ignore_file = file_resources.GetExcludePatternsForDir(  # pylint: disable=invalid-name
       os.getcwd())
 
-  files = file_resources.GetCommandLineFiles(args.files, args.recursive,
-                                             (args.exclude or []) +
-                                             exclude_patterns_from_ignore_file)
+  files = file_resources.GetCommandLineFiles(
+      args.files,
+      args.recursive,
+      (args.exclude or []) + exclude_patterns_from_ignore_file
+  )
   if not files:
     raise errors.YapfError('Input filenames did not match any python files')
 
@@ -187,8 +187,8 @@ def FormatFiles(filenames,
   """
   changed = False
   if parallel:
-    import multiprocessing  # pylint: disable=g-import-not-at-top
-    import concurrent.futures  # pylint: disable=g-import-not-at-top
+    import multiprocessing  # pylint: disable=import-outside-toplevel
+    import concurrent.futures  # pylint: disable=import-outside-toplevel
     workers = min(multiprocessing.cpu_count(), len(filenames))
     with concurrent.futures.ProcessPoolExecutor(workers) as executor:
       future_formats = [
@@ -357,7 +357,7 @@ def _ParseArguments(argv):
 
   parser.add_argument(
       'files', nargs='*', help='reads from stdin when no files are specified.')
-  return parser.parse_args(argv[1:])
+  return (parser, parser.parse_args(argv[1:]))
 
 
 def run_main():  # pylint: disable=invalid-name

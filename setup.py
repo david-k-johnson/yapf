@@ -50,6 +50,9 @@ with codecs.open('README.rst', 'r', 'utf-8') as fd:
       maintainer='Bill Wendling',
       maintainer_email='morbo@google.com',
       packages=['yapf', 'yapf.yapflib', 'yapftests'],
+      install_requires=[
+          "regex>=2020.1.8",
+      ],
       classifiers=[
           'Development Status :: 4 - Beta',
           'Environment :: Console',

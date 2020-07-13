@@ -48,10 +48,10 @@ def _exists_mocked_in_module(module, mock_implementation):
 
 class GetExcludePatternsForDir(unittest.TestCase):
 
-  def setUp(self):  # pylint: disable=g-missing-super-call
+  def setUp(self):
     self.test_tmpdir = tempfile.mkdtemp()
 
-  def tearDown(self):  # pylint: disable=g-missing-super-call
+  def tearDown(self):
     shutil.rmtree(self.test_tmpdir)
 
   def _make_test_dir(self, name):
@@ -62,8 +62,8 @@ class GetExcludePatternsForDir(unittest.TestCase):
   def test_get_exclude_file_patterns(self):
     local_ignore_file = os.path.join(self.test_tmpdir, '.yapfignore')
     ignore_patterns = ['temp/**/*.py', 'temp2/*.py']
-    with open(local_ignore_file, 'w') as f:
-      f.writelines('\n'.join(ignore_patterns))
+    with open(local_ignore_file, 'w') as file1:
+      file1.writelines('\n'.join(ignore_patterns))
 
     self.assertEqual(
         sorted(file_resources.GetExcludePatternsForDir(self.test_tmpdir)),
@@ -72,10 +72,10 @@ class GetExcludePatternsForDir(unittest.TestCase):
 
 class GetDefaultStyleForDirTest(unittest.TestCase):
 
-  def setUp(self):  # pylint: disable=g-missing-super-call
+  def setUp(self):
     self.test_tmpdir = tempfile.mkdtemp()
 
-  def tearDown(self):  # pylint: disable=g-missing-super-call
+  def tearDown(self):
     shutil.rmtree(self.test_tmpdir)
 
   def test_no_local_style(self):
@@ -112,8 +112,8 @@ class GetDefaultStyleForDirTest(unittest.TestCase):
     self.assertEqual(style_name, 'pep8')
 
     # One with a '[yapf]' section should be used
-    with open(setup_config, 'w') as f:
-      f.write('[yapf]\n')
+    with open(setup_config, 'w') as file_write:
+      file_write.write('[yapf]\n')
     self.assertEqual(setup_config,
                      file_resources.GetDefaultStyleForDir(test_dir))
 
@@ -147,11 +147,11 @@ def _touch_files(filenames):
 
 class GetCommandLineFilesTest(unittest.TestCase):
 
-  def setUp(self):  # pylint: disable=g-missing-super-call
+  def setUp(self):
     self.test_tmpdir = tempfile.mkdtemp()
     self.old_dir = os.getcwd()
 
-  def tearDown(self):  # pylint: disable=g-missing-super-call
+  def tearDown(self):
     shutil.rmtree(self.test_tmpdir)
     os.chdir(self.old_dir)
 
@@ -250,7 +250,7 @@ class GetCommandLineFilesTest(unittest.TestCase):
             os.path.join(tdir3, 'testfile3.py'),
         ]))
 
-  def test_find_with_excluded_hidden_dirs_relative(self):
+  def test_find_with_excluded_hidden_dirs_relative(self):  #pylint: disable=invalid-name
     """Test find with excluded hidden dirs.
 
     A regression test against a specific case where a hidden directory (one
@@ -332,10 +332,10 @@ class GetCommandLineFilesTest(unittest.TestCase):
 
 class IsPythonFileTest(unittest.TestCase):
 
-  def setUp(self):  # pylint: disable=g-missing-super-call
+  def setUp(self):
     self.test_tmpdir = tempfile.mkdtemp()
 
-  def tearDown(self):  # pylint: disable=g-missing-super-call
+  def tearDown(self):
     shutil.rmtree(self.test_tmpdir)
 
   def test_with_py_extension(self):
@@ -350,26 +350,26 @@ class IsPythonFileTest(unittest.TestCase):
 
   def test_python_shebang(self):
     file1 = os.path.join(self.test_tmpdir, 'testfile1')
-    with open(file1, 'w') as f:
-      f.write(u'#!/usr/bin/python\n')
+    with open(file1, 'w') as file_write:
+      file_write.write(u'#!/usr/bin/python\n')
     self.assertTrue(file_resources.IsPythonFile(file1))
 
     file2 = os.path.join(self.test_tmpdir, 'testfile2.run')
-    with open(file2, 'w') as f:
-      f.write(u'#! /bin/python2\n')
+    with open(file2, 'w') as file_write:
+      file_write.write(u'#! /bin/python2\n')
     self.assertTrue(file_resources.IsPythonFile(file1))
 
   def test_with_latin_encoding(self):
     file1 = os.path.join(self.test_tmpdir, 'testfile1')
-    with py3compat.open_with_encoding(file1, mode='w', encoding='latin-1') as f:
-      f.write(u'#! /bin/python2\n')
+    with py3compat.open_with_encoding(file1, mode='w', encoding='latin-1') as file_write:
+      file_write.write(u'#! /bin/python2\n')
     self.assertTrue(file_resources.IsPythonFile(file1))
 
   def test_with_invalid_encoding(self):
     file1 = os.path.join(self.test_tmpdir, 'testfile1')
-    with open(file1, 'w') as f:
-      f.write(u'#! /bin/python2\n')
-      f.write(u'# -*- coding: iso-3-14159 -*-\n')
+    with open(file1, 'w') as file_write:
+      file_write.write(u'#! /bin/python2\n')
+      file_write.write(u'# -*- coding: iso-3-14159 -*-\n')
     self.assertFalse(file_resources.IsPythonFile(file1))
 
 
@@ -405,22 +405,22 @@ class BufferedByteStream(object):
 class WriteReformattedCodeTest(unittest.TestCase):
 
   @classmethod
-  def setUpClass(cls):  # pylint: disable=g-missing-super-call
+  def setUpClass(cls):
     cls.test_tmpdir = tempfile.mkdtemp()
 
   @classmethod
-  def tearDownClass(cls):  # pylint: disable=g-missing-super-call
+  def tearDownClass(cls):
     shutil.rmtree(cls.test_tmpdir)
 
   def test_write_to_file(self):
     s = u'foobar\n'
-    with utils.NamedTempFile(dirname=self.test_tmpdir) as (f, fname):
+    with utils.NamedTempFile(dirname=self.test_tmpdir) as (file_write, fname):
       file_resources.WriteReformattedCode(
           fname, s, in_place=True, encoding='utf-8')
-      f.flush()
+      file_write.flush()
 
-      with open(fname) as f2:
-        self.assertEqual(f2.read(), s)
+      with open(fname) as file2:
+        self.assertEqual(file2.read(), s)
 
   def test_write_to_stdout(self):
     s = u'foobar'
